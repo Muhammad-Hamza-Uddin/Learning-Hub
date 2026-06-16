@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Feedback — LearnHub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --teal:    #2D5F5D;
+      --teal-lt: #3d7a78;
+      --coral:   #E07A5F;
+      --amber:   #F4A261;
+      --gold:    #F5C842;
+      --dark:    #181818;
+      --cream:   #FDF8F3;
+      --white:   #FFFFFF;
+      --muted:   #6B6B6B;
+      --border:  #EBEBEB;
+      --green:   #22c55e;
+      --shadow:  0 8px 40px rgba(0,0,0,.08);
+      --shadow-lg: 0 24px 80px rgba(0,0,0,.14);
+    }
+
+    html { scroll-behavior:smooth; }
+    body {
+      font-family:'DM Sans', sans-serif;
+      background:var(--cream);
+      color:var(--dark);
+      overflow-x:hidden;
+    }
+
+    /* ── AMBIENT ORBS ── */
+    .bg-orbs { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+    .bg-orbs span {
+      position:absolute; border-radius:50%; opacity:.03;
+      animation:drift 22s ease-in-out infinite;
+    }
+    .bg-orbs span:nth-child(1){ width:700px;height:700px;background:var(--teal);   top:-240px;right:-200px; }
+    .bg-orbs span:nth-child(2){ width:520px;height:520px;background:var(--coral);  bottom:-200px;left:-180px; animation-delay:8s; }
+    .bg-orbs span:nth-child(3){ width:400px;height:400px;background:var(--gold);   top:45%;left:35%; animation-delay:16s; }
+    @keyframes drift {
+      0%,100%{transform:translate(0,0) scale(1);}
+      40%{transform:translate(55px,-55px) scale(1.09);}
+      70%{transform:translate(-35px,35px) scale(.93);}
+    }
+
+    /* ── HEADER ── */
+    header {
+      position:sticky; top:0; z-index:200;
+      padding:1.4rem 5%;
+      display:flex; justify-content:space-between; align-items:center;
+      background:rgba(253,248,243,.93);
+      backdrop-filter:blur(14px);
+      border-bottom:1px solid rgba(0,0,0,.06);
+      animation:slideDown .7s ease-out both;
+    }
+    @keyframes slideDown { from{opacity:0;transform:translateY(-28px)} to{opacity:1;transform:translateY(0)} }
+
+    .logo {
+      font-family:'Crimson Pro',serif;
+      font-size:1.9rem; font-weight:700;
+      color:var(--teal); text-decoration:none; letter-spacing:-.02em;
+    }
+    nav { display:flex; gap:2.5rem; align-items:center; }
+    nav a {
+      text-decoration:none; color:var(--dark); font-weight:500; font-size:.97rem;
+      position:relative; transition:color .25s;
+    }
+    nav a::after {
+      content:''; position:absolute; bottom:-4px; left:0; width:0; height:2px;
+      background:var(--coral); transition:width .3s;
+    }
+    nav a:hover { color:var(--teal); }
+    nav a:hover::after, nav a.active::after { width:100%; }
+    nav a.active { color:var(--teal); }
+    .nav-cta {
+      background:var(--teal); color:var(--white) !important;
+      padding:.65rem 1.4rem; border-radius:50px; transition:all .3s;
+    }
+    .nav-cta::after { display:none !important; }
+    .nav-cta:hover { background:var(--coral); transform:translateY(-2px); box-shadow:0 10px 28px rgba(224,122,95,.35); }
+
+    /* ── PAGE HERO ── */
+    .page-hero {
+      position:relative; z-index:10;
+      padding:5rem 5% 3.5rem; text-align:center;
+      animation:riseUp .85s ease-out .2s both;
+    }
+    @keyframes riseUp { from{opacity:0;transform:translateY(36px)} to{opacity:1;transform:translateY(0)} }
+
+    .hero-tag {
+      display:inline-block;
+      background:rgba(45,95,93,.1); color:var(--teal);
+      font-weight:700; font-size:.8rem; text-transform:uppercase;
+      letter-spacing:.1em; padding:.45rem 1.1rem; border-radius:50px;
+      margin-bottom:1.4rem;
+    }
+    .page-hero h1 {
+      font-family:'Crimson Pro',serif;
+      font-size:clamp(2.8rem,5.5vw,4.4rem);
+      font-weight:700; color:var(--teal);
+      letter-spacing:-.03em; line-height:1.1; margin-bottom:1rem;
+    }
+    .page-hero h1 em { color:var(--coral); font-style:normal; }
+    .page-hero p {
+      font-size:1.15rem; color:var(--muted);
+      max-width:580px; margin:0 auto; line-height:1.75;
+    }
+
+    /* ── OVERALL RATING OVERVIEW ── */
+    .rating-overview {
+      position:relative; z-index:10;
+      padding:3rem 5%;
+    }
+    .overview-box {
+      max-width:1100px; margin:0 auto;
+      background:var(--white); border-radius:28px;
+      padding:3.5rem; box-shadow:var(--shadow);
+      display:grid; grid-template-columns:280px 1fr auto;
+      gap:4rem; align-items:center;
+    }
+
+    /* Big score */
+    .score-block { text-align:center; }
+    .score-number {
+      font-family:'Crimson Pro',serif;
+      font-size:6rem; font-weight:700; color:var(--teal);
+      line-height:1;
+    }
+    .score-stars { font-size:2rem; color:var(--gold); margin:.4rem 0; letter-spacing:2px; }
+    .score-sub   { font-size:.95rem; color:var(--muted); }
+
+    /* Bar chart */
+    .bars { display:flex; flex-direction:column; gap:.75rem; }
+    .bar-row { display:flex; align-items:center; gap:.9rem; }
+    .bar-label { font-size:.88rem; font-weight:600; color:var(--muted); width:42px; text-align:right; flex-shrink:0; }
+    .bar-stars { color:var(--gold); font-size:.85rem; }
+    .bar-track {
+      flex:1; height:10px; background:var(--border); border-radius:10px; overflow:hidden;
+    }
+    .bar-fill {
+      height:100%; border-radius:10px;
+      background:linear-gradient(90deg, var(--amber), var(--gold));
+      transition:width 1.4s cubic-bezier(.4,0,.2,1);
+    }
+    .bar-count { font-size:.85rem; color:var(--muted); width:36px; flex-shrink:0; }
+
+    /* Summary stats */
+    .summary-stats { display:flex; flex-direction:column; gap:1.5rem; }
+    .s-stat { display:flex; align-items:center; gap:1rem; }
+    .s-stat .icon {
+      width:48px; height:48px; border-radius:14px;
+      background:rgba(45,95,93,.08);
+      display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0;
+    }
+    .s-stat .val { font-family:'Crimson Pro',serif; font-size:1.6rem; font-weight:700; color:var(--teal); }
+    .s-stat .lbl { font-size:.85rem; color:var(--muted); }
+
+    /* ── FILTER + SORT BAR ── */
+    .filter-bar {
+      position:relative; z-index:10;
+      padding:0 5% 2rem;
+      display:flex; gap:1rem; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    }
+    .filter-bar .left { display:flex; gap:.75rem; flex-wrap:wrap; }
+
+    .pill {
+      padding:.6rem 1.3rem; border:2px solid var(--border); background:var(--white);
+      border-radius:50px; font-family:'DM Sans',sans-serif; font-weight:600;
+      font-size:.87rem; cursor:pointer; transition:all .28s; color:var(--dark);
+    }
+    .pill:hover { border-color:var(--teal); color:var(--teal); transform:translateY(-2px); }
+    .pill.active { background:var(--teal); border-color:var(--teal); color:var(--white); }
+
+    .sort-sel {
+      padding:.6rem 1.3rem; border:2px solid var(--border); border-radius:50px;
+      font-family:'DM Sans',sans-serif; font-weight:600; font-size:.87rem;
+      background:var(--white); cursor:pointer; transition:border-color .25s;
+    }
+    .sort-sel:focus { outline:none; border-color:var(--teal); }
+
+    /* ── REVIEWS GRID ── */
+    .reviews-section {
+      position:relative; z-index:10;
+      padding:0 5% 5rem;
+    }
+    .reviews-grid {
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:2rem;
+      margin-bottom:3rem;
+    }
+
+    .review-card {
+      background:var(--white); border-radius:22px;
+      padding:2rem; box-shadow:var(--shadow);
+      transition:transform .38s cubic-bezier(.22,1,.36,1), box-shadow .38s;
+      animation:cardIn .65s ease-out both;
+      position:relative; overflow:hidden;
+    }
+    .review-card::before {
+      content:'"';
+      font-family:'Crimson Pro',serif; font-size:7rem; color:var(--border);
+      position:absolute; top:-.5rem; right:1.2rem; line-height:1;
+      pointer-events:none;
+    }
+    .review-card:nth-child(1){animation-delay:.07s}
+    .review-card:nth-child(2){animation-delay:.14s}
+    .review-card:nth-child(3){animation-delay:.21s}
+    .review-card:nth-child(4){animation-delay:.28s}
+    .review-card:nth-child(5){animation-delay:.35s}
+    .review-card:nth-child(6){animation-delay:.42s}
+    .review-card:nth-child(7){animation-delay:.49s}
+    .review-card:nth-child(8){animation-delay:.56s}
+    @keyframes cardIn { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+    .review-card:hover { transform:translateY(-8px); box-shadow:var(--shadow-lg); }
+
+    .card-top {
+      display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1.2rem;
+    }
+    .reviewer { display:flex; align-items:center; gap:.85rem; }
+    .avatar {
+      width:46px; height:46px; border-radius:50%;
+      background:linear-gradient(135deg, var(--teal), var(--coral));
+      display:flex; align-items:center; justify-content:center;
+      color:#fff; font-weight:700; font-size:.95rem; flex-shrink:0;
+    }
+    .reviewer-info .rname { font-weight:700; font-size:1rem; color:var(--dark); }
+    .reviewer-info .rcourse {
+      font-size:.82rem; color:var(--coral); font-weight:600; margin-top:.1rem;
+    }
+    .reviewer-info .rdate { font-size:.78rem; color:#bbb; margin-top:.1rem; }
+
+    .r-stars { color:var(--gold); font-size:1.05rem; letter-spacing:1px; flex-shrink:0; }
+
+    .review-badge {
+      display:inline-flex; align-items:center; gap:.4rem;
+      font-size:.75rem; font-weight:700; padding:.25rem .8rem; border-radius:20px;
+      margin-bottom:1rem;
+    }
+    .badge-verified { background:rgba(34,197,94,.1); color:var(--green); }
+    .badge-top      { background:rgba(224,122,95,.1); color:var(--coral); }
+    .badge-new      { background:rgba(45,95,93,.1);  color:var(--teal);  }
+
+    .review-text {
+      font-size:.96rem; color:#555; line-height:1.75;
+      margin-bottom:1.4rem; position:relative; z-index:1;
+    }
+
+    .card-footer-row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding-top:1rem; border-top:1px solid var(--border);
+    }
+    .helpful {
+      display:flex; align-items:center; gap:.5rem;
+      font-size:.82rem; color:var(--muted);
+    }
+    .helpful-btn {
+      background:var(--border); border:none; border-radius:20px;
+      padding:.3rem .9rem; font-family:'DM Sans',sans-serif;
+      font-size:.8rem; font-weight:600; cursor:pointer; transition:all .25s;
+      display:flex; align-items:center; gap:.4rem;
+    }
+    .helpful-btn:hover { background:var(--teal); color:#fff; }
+    .helpful-btn.liked { background:var(--teal); color:#fff; }
+
+    .course-chip {
+      font-size:.75rem; font-weight:600; color:var(--muted);
+      background:rgba(0,0,0,.04); padding:.3rem .8rem; border-radius:20px;
+    }
+
+    /* ── LOAD MORE ── */
+    .load-more-wrap { text-align:center; }
+    .load-btn {
+      padding:1rem 3.5rem; background:var(--teal); color:#fff;
+      border:none; border-radius:50px; font-family:'DM Sans',sans-serif;
+      font-weight:700; font-size:1rem; cursor:pointer; transition:all .3s;
+    }
+    .load-btn:hover { background:var(--coral); transform:translateY(-3px); box-shadow:0 14px 38px rgba(224,122,95,.42); }
+
+    /* ── SUBMIT FEEDBACK FORM ── */
+    .form-section {
+      position:relative; z-index:10;
+      padding:5rem 5%;
+      background:var(--white);
+    }
+    .form-section .section-header { text-align:center; margin-bottom:3.5rem; }
+    .section-header h2 {
+      font-family:'Crimson Pro',serif;
+      font-size:clamp(2.2rem,4vw,3.2rem); font-weight:700;
+      color:var(--teal); margin-bottom:.8rem;
+    }
+    .section-header p { font-size:1.05rem; color:var(--muted); max-width:540px; margin:0 auto; }
+
+    .form-wrap {
+      max-width:780px; margin:0 auto;
+      background:var(--cream); border-radius:28px;
+      padding:3.5rem; box-shadow:0 6px 30px rgba(0,0,0,.06);
+      border:2px solid var(--border);
+    }
+
+    /* Step indicator */
+    .steps {
+      display:flex; align-items:center; justify-content:center;
+      gap:0; margin-bottom:3rem;
+    }
+    .step {
+      display:flex; flex-direction:column; align-items:center; gap:.4rem;
+      position:relative;
+    }
+    .step-num {
+      width:40px; height:40px; border-radius:50%;
+      background:var(--border); color:#aaa;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:700; font-size:.9rem; transition:all .4s; z-index:1;
+    }
+    .step.active .step-num  { background:var(--teal); color:#fff; box-shadow:0 4px 16px rgba(45,95,93,.4); }
+    .step.done .step-num    { background:var(--green); color:#fff; }
+    .step-lbl { font-size:.75rem; font-weight:600; color:#aaa; white-space:nowrap; transition:color .4s; }
+    .step.active .step-lbl  { color:var(--teal); }
+    .step.done .step-lbl    { color:var(--green); }
+    .step-line {
+      width:80px; height:3px; background:var(--border); margin-bottom:1.3rem;
+      transition:background .5s;
+    }
+    .step-line.done { background:var(--green); }
+
+    /* Form pages */
+    .form-page { display:none; }
+    .form-page.active { display:block; animation:fadeSlide .4s ease-out; }
+    @keyframes fadeSlide { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+
+    .form-group { margin-bottom:1.6rem; }
+    .form-group label {
+      display:block; font-weight:700; font-size:.92rem; margin-bottom:.6rem; color:var(--dark);
+    }
+    .form-group label span { color:var(--coral); }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width:100%; padding:1rem 1.2rem;
+      border:2px solid var(--border); border-radius:14px;
+      font-family:'DM Sans',sans-serif; font-size:.97rem;
+      background:var(--white); color:var(--dark);
+      transition:border-color .25s, box-shadow .25s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline:none; border-color:var(--teal);
+      box-shadow:0 0 0 4px rgba(45,95,93,.08);
+    }
+    .form-group textarea { resize:vertical; min-height:130px; }
+
+    /* Inline 2-col */
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; }
+
+    /* Interactive Star Picker */
+    .star-picker { display:flex; gap:.5rem; margin-top:.4rem; }
+    .star-picker .sp-star {
+      font-size:2.4rem; cursor:pointer; color:#ddd;
+      transition:transform .2s, color .2s; user-select:none;
+    }
+    .star-picker .sp-star:hover,
+    .star-picker .sp-star.hovered,
+    .star-picker .sp-star.selected { color:var(--gold); }
+    .star-picker .sp-star:hover { transform:scale(1.25) rotate(-5deg); }
+    .star-label {
+      font-size:.88rem; color:var(--muted); margin-top:.5rem; min-height:1.2em; font-style:italic;
+    }
+
+    /* Category ratings */
+    .cat-ratings { display:flex; flex-direction:column; gap:1rem; }
+    .cat-row { display:flex; align-items:center; gap:1rem; }
+    .cat-name { font-size:.9rem; font-weight:600; color:var(--dark); width:150px; flex-shrink:0; }
+    .mini-stars { display:flex; gap:.3rem; }
+    .mini-stars .ms {
+      font-size:1.4rem; cursor:pointer; color:#ddd;
+      transition:color .2s, transform .2s;
+    }
+    .mini-stars .ms:hover,
+    .mini-stars .ms.active { color:var(--gold); }
+    .mini-stars .ms:hover { transform:scale(1.2); }
+
+    /* Form navigation buttons */
+    .form-nav {
+      display:flex; justify-content:space-between; align-items:center;
+      margin-top:2.2rem; gap:1rem;
+    }
+    .btn-back {
+      padding:.9rem 2rem; background:transparent; color:var(--muted);
+      border:2px solid var(--border); border-radius:50px;
+      font-family:'DM Sans',sans-serif; font-weight:700; font-size:.97rem;
+      cursor:pointer; transition:all .3s;
+    }
+    .btn-back:hover { border-color:var(--teal); color:var(--teal); }
+    .btn-next {
+      padding:.9rem 2.5rem; background:var(--teal); color:#fff;
+      border:none; border-radius:50px;
+      font-family:'DM Sans',sans-serif; font-weight:700; font-size:.97rem;
+      cursor:pointer; transition:all .3s; margin-left:auto;
+    }
+    .btn-next:hover { background:var(--coral); transform:translateY(-2px); box-shadow:0 10px 28px rgba(224,122,95,.38); }
+    .btn-submit {
+      padding:.9rem 2.5rem; background:linear-gradient(135deg,var(--teal),var(--coral));
+      color:#fff; border:none; border-radius:50px;
+      font-family:'DM Sans',sans-serif; font-weight:700; font-size:.97rem;
+      cursor:pointer; transition:all .3s; margin-left:auto;
+    }
+    .btn-submit:hover { transform:translateY(-2px); box-shadow:0 14px 36px rgba(45,95,93,.35); }
+
+    /* Success state */
+    .success-screen {
+      display:none; text-align:center; padding:2rem 0;
+      animation:fadeSlide .5s ease-out;
+    }
+    .success-screen.show { display:block; }
+    .success-icon { font-size:4.5rem; margin-bottom:1.5rem; display:block; }
+    .success-screen h3 {
+      font-family:'Crimson Pro',serif; font-size:2.4rem; font-weight:700;
+      color:var(--teal); margin-bottom:.8rem;
+    }
+    .success-screen p { font-size:1.05rem; color:var(--muted); line-height:1.7; margin-bottom:2rem; }
+    .btn-another {
+      padding:.9rem 2.5rem; background:var(--teal); color:#fff;
+      border:none; border-radius:50px;
+      font-family:'DM Sans',sans-serif; font-weight:700; font-size:.97rem; cursor:pointer; transition:all .3s;
+    }
+    .btn-another:hover { background:var(--coral); transform:translateY(-2px); }
+
+    /* ── FEATURED VIDEO TESTIMONIALS ── */
+    .video-section {
+      position:relative; z-index:10;
+      padding:5rem 5%;
+    }
+    .section-header { text-align:center; margin-bottom:3.5rem; }
+    .video-grid {
+      max-width:1100px; margin:0 auto;
+      display:grid; grid-template-columns:repeat(3,1fr); gap:2rem;
+    }
+    .video-card {
+      background:var(--white); border-radius:22px;
+      overflow:hidden; box-shadow:var(--shadow); cursor:pointer;
+      transition:transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s;
+    }
+    .video-card:hover { transform:translateY(-8px); box-shadow:var(--shadow-lg); }
+    .video-thumb {
+      position:relative; padding-bottom:56.25%; background:#111; overflow:hidden;
+    }
+    .video-thumb img {
+      position:absolute; inset:0; width:100%; height:100%;
+      object-fit:cover; transition:transform .5s, filter .4s;
+      filter:brightness(.88);
+    }
+    .video-card:hover .video-thumb img { transform:scale(1.06); filter:brightness(.72); }
+    .video-thumb .play-overlay {
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    }
+    .play-circle {
+      width:60px; height:60px; border-radius:50%;
+      background:rgba(255,255,255,.92);
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 6px 28px rgba(0,0,0,.3);
+      transition:transform .3s, background .3s;
+    }
+    .play-circle svg { width:24px; height:24px; fill:var(--teal); margin-left:3px; }
+    .video-card:hover .play-circle { transform:scale(1.18); background:var(--coral); }
+    .video-card:hover .play-circle svg { fill:#fff; }
+
+    .video-info { padding:1.4rem; }
+    .video-reviewer { display:flex; align-items:center; gap:.75rem; margin-bottom:.8rem; }
+    .video-avatar {
+      width:38px; height:38px; border-radius:50%;
+      background:linear-gradient(135deg,var(--amber),var(--coral));
+      display:flex; align-items:center; justify-content:center;
+      color:#fff; font-weight:700; font-size:.82rem; flex-shrink:0;
+    }
+    .video-name { font-weight:700; font-size:.95rem; }
+    .video-role { font-size:.8rem; color:var(--muted); }
+    .video-quote { font-size:.9rem; color:#555; line-height:1.65; font-style:italic; }
+    .video-stars { color:var(--gold); font-size:.9rem; margin-top:.6rem; }
+
+    /* ── VIDEO MODAL ── */
+    .modal-overlay {
+      position:fixed; inset:0; z-index:1000;
+      background:rgba(10,10,10,.87); backdrop-filter:blur(8px);
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none; transition:opacity .35s;
+    }
+    .modal-overlay.open { opacity:1; pointer-events:all; }
+    .modal-box {
+      width:min(880px,94vw); background:#111; border-radius:20px;
+      overflow:hidden; box-shadow:0 40px 120px rgba(0,0,0,.7);
+      transform:scale(.88) translateY(40px);
+      transition:transform .4s cubic-bezier(.22,1,.36,1);
+    }
+    .modal-overlay.open .modal-box { transform:scale(1) translateY(0); }
+    .modal-video { position:relative; width:100%; padding-bottom:56.25%; }
+    .modal-video iframe { position:absolute; inset:0; width:100%; height:100%; border:none; }
+    .modal-close {
+      position:absolute; top:1rem; right:1rem; z-index:10;
+      width:40px; height:40px; border-radius:50%;
+      background:rgba(255,255,255,.15); border:none; cursor:pointer;
+      color:#fff; font-size:1.2rem;
+      display:flex; align-items:center; justify-content:center;
+      transition: background 0.25s ease, transform 0.25s ease;
+    }
+    .modal-close:hover { background:var(--coral); transform:scale(1.1); }
+
+    /* ── STATS STRIP ── */
+    .stats-strip {
+      position:relative; z-index:10;
+      background:var(--teal); padding:3.5rem 5%;
+    }
+    .stats-inner {
+      max-width:1000px; margin:0 auto;
+      display:grid; grid-template-columns:repeat(4,1fr); gap:2rem; text-align:center;
+    }
+    
+    .strip-num {
+      font-family:'Crimson Pro',serif; font-size:3.2rem; font-weight:700;
+      color:var(--white); margin-bottom:.3rem;
+    }
+    .strip-lbl { font-size:.95rem; color:rgba(255,255,255,.7); }
+
+    /* ── CTA ── */
+    .cta-section { position:relative; z-index:10; padding:5rem 5%; }
+    .cta-box {
+      max-width:960px; margin:0 auto;
+      background:linear-gradient(135deg,var(--teal) 0%,var(--coral) 100%);
+      border-radius:32px; padding:5rem 4rem; text-align:center;
+      color:#fff; position:relative; overflow:hidden;
+    }
+    .cta-box::before {
+      content:''; position:absolute; top:-40%; right:-30%; width:100%; height:100%;
+      border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,.08) 0%,transparent 65%);
+      animation:spin 25s linear infinite;
+    }
+    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    .cta-box h2 { font-family:'Crimson Pro',serif; font-size:2.8rem; font-weight:700; margin-bottom:1rem; position:relative; z-index:1; }
+    .cta-box p  { font-size:1.1rem; opacity:.92; margin-bottom:2.5rem; position:relative; z-index:1; }
+    .cta-btns   { display:flex; gap:1.2rem; justify-content:center; flex-wrap:wrap; position:relative; z-index:1; }
+    .btn-white {
+      padding:1.1rem 2.8rem; background:#fff; color:var(--teal);
+      border:none; border-radius:50px; font-family:'DM Sans',sans-serif;
+      font-weight:700; font-size:1rem; cursor:pointer;
+      text-decoration:none; display:inline-block; transition:all .3s;
+    }
+    .btn-white:hover { background:var(--cream); transform:translateY(-3px); box-shadow:0 14px 36px rgba(0,0,0,.2); }
+    .btn-ghost {
+      padding:1.1rem 2.8rem; background:transparent; color:#fff;
+      border:2.5px solid rgba(255,255,255,.65); border-radius:50px;
+      font-family:'DM Sans',sans-serif; font-weight:700; font-size:1rem;
+      cursor:pointer; text-decoration:none; display:inline-block; transition:all .3s;
+    }
+    .btn-ghost:hover { background:rgba(255,255,255,.15); transform:translateY(-3px); }
+
+    /* ── FOOTER ── */
+    footer { background:var(--dark); color:#fff; padding:4rem 5% 2rem; position:relative; z-index:10; }
+    .footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:4rem; margin-bottom:3rem; }
+    .footer-brand h3 { font-family:'Crimson Pro',serif; font-size:2rem; margin-bottom:.9rem; }
+    .footer-brand p  { color:#999; line-height:1.7; }
+    .footer-col h4   { margin-bottom:1.2rem; font-weight:600; }
+    .footer-col ul   { list-style:none; }
+    .footer-col li   { margin-bottom:.7rem; }
+    .footer-col a    { color:#999; text-decoration:none; transition:color .25s; }
+    .footer-col a:hover { color:var(--amber); }
+    .footer-bottom { border-top:1px solid #2f2f2f; padding-top:1.8rem; text-align:center; color:#555; font-size:.9rem; }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:1024px){
+      .overview-box { grid-template-columns:1fr; gap:2.5rem; }
+      .video-grid   { grid-template-columns:1fr 1fr; }
+      .stats-inner  { grid-template-columns:repeat(2,1fr); }
+      .footer-grid  { grid-template-columns:1fr 1fr; }
+    }
+    @media(max-width:768px){
+      header { flex-direction:column; gap:1rem; }
+      nav    { flex-wrap:wrap; justify-content:center; gap:1rem; }
+      .reviews-grid   { grid-template-columns:1fr; }
+      .video-grid     { grid-template-columns:1fr; max-width:460px; margin:0 auto; }
+      .form-row       { grid-template-columns:1fr; }
+      .step-line      { width:44px; }
+      .footer-grid    { grid-template-columns:1fr; gap:2rem; }
+      .cta-box        { padding:3.5rem 2rem; }
+      .cta-box h2     { font-size:2.2rem; }
+      .form-wrap      { padding:2.2rem 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-orbs"><span></span><span></span><span></span></div>
+
+<!-- ── HEADER ── -->
+<header>
+  <a class="logo" href="index.html">LearnHub</a>
+  <nav>
+    <a href="courses.php">Courses</a>
+    <a href="About.html">About</a>
+    <a href="student-feedback.html">Student Feedback</a>
+    <a href="Contact.html" class="active">Contact</a>
+    <a href="courses.php" class="nav-cta">Get Started</a>
+  </nav>
+</header>
+
+<!-- ── HERO ── -->
+<section class="page-hero">
+  <div class="hero-tag">💬 Student Voices</div>
+  <h1>What Our <em>Learners</em> Say</h1>
+  <p>Over 50,000 students have shared their journeys. Read honest reviews, watch video stories, and share your own experience.</p>
+</section>
+
+<!-- ── RATING OVERVIEW ── -->
+<section class="rating-overview">
+  <div class="overview-box">
+    <div class="score-block">
+      <div class="score-number">4.8</div>
+      <div class="score-stars">★★★★★</div>
+      <div class="score-sub">Overall Rating · 48,312 reviews</div>
+    </div>
+
+    <div class="bars" id="barsContainer">
+      <div class="bar-row">
+        <span class="bar-label">5 ★</span>
+        <div class="bar-track"><div class="bar-fill" data-pct="78" style="width:0%"></div></div>
+        <span class="bar-count">78%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">4 ★</span>
+        <div class="bar-track"><div class="bar-fill" data-pct="14" style="width:0%"></div></div>
+        <span class="bar-count">14%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">3 ★</span>
+        <div class="bar-track"><div class="bar-fill" data-pct="5" style="width:0%"></div></div>
+        <span class="bar-count">5%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">2 ★</span>
+        <div class="bar-track"><div class="bar-fill" data-pct="2" style="width:0%"></div></div>
+        <span class="bar-count">2%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">1 ★</span>
+        <div class="bar-track"><div class="bar-fill" data-pct="1" style="width:0%"></div></div>
+        <span class="bar-count">1%</span>
+      </div>
+    </div>
+
+    <div class="summary-stats">
+      <div class="s-stat">
+        <div class="icon">🎓</div>
+        <div><div class="val">92%</div><div class="lbl">Would recommend</div></div>
+      </div>
+      <div class="s-stat">
+        <div class="icon">💼</div>
+        <div><div class="val">68%</div><div class="lbl">Got a new job / promotion</div></div>
+      </div>
+      <div class="s-stat">
+        <div class="icon">⚡</div>
+        <div><div class="val">4.9</div><div class="lbl">Instructor quality</div></div>
+      </div>
+      <div class="s-stat">
+        <div class="icon">📱</div>
+        <div><div class="val">4.7</div><div class="lbl">Platform experience</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STATS STRIP ── -->
+<div class="stats-strip">
+  <div class="stats-inner">
+    <div class="strip-stat"><div class="strip-num">50K+</div><div class="strip-lbl">Happy Learners</div></div>
+    <div class="strip-stat"><div class="strip-num">48K+</div><div class="strip-lbl">Reviews Written</div></div>
+    <div class="strip-stat"><div class="strip-num">1,000+</div><div class="strip-lbl">Courses Reviewed</div></div>
+    <div class="strip-stat"><div class="strip-num">130+</div><div class="strip-lbl">Countries Represented</div></div>
+  </div>
+</div>
+
+<!-- ── FILTER BAR ── -->
+<div class="filter-bar" style="padding-top:3rem;">
+  <div class="left">
+    <button class="pill active" onclick="setFilter(this)">All Reviews</button>
+    <button class="pill" onclick="setFilter(this)">★★★★★ 5 Star</button>
+    <button class="pill" onclick="setFilter(this)">★★★★ 4 Star</button>
+    <button class="pill" onclick="setFilter(this)">Web Dev</button>
+    <button class="pill" onclick="setFilter(this)">Data Science</button>
+    <button class="pill" onclick="setFilter(this)">Design</button>
+    <button class="pill" onclick="setFilter(this)">Verified Only</button>
+  </div>
+  <select class="sort-sel">
+    <option>Sort: Most Helpful</option>
+    <option>Sort: Newest First</option>
+    <option>Sort: Highest Rated</option>
+    <option>Sort: Lowest Rated</option>
+  </select>
+</div>
+
+<!-- ── REVIEWS GRID ── -->
+<section class="reviews-section">
+  <div class="reviews-grid">
+
+    <!-- CARD 1 -->
+    <div class="review-card">
+      <div class="card-top">
+        <div class="reviewer">
+          <div class="avatar">AK</div>
+          <div class="reviewer-info">
+            <div class="rname"></div>
+            <div class="rcourse">Web Dev Bootcamp</div>
+            <div class="rdate">Feb 2, 2026</div>
+          </div>
+        </div>
+        <div class="r-stars">★★★★★</div>
+      </div>
+      <span class="review-badge badge-verified">✓ Verified Purchase</span>
+      <p class="review-text">This bootcamp completely changed my career trajectory. Within 4 months of finishing, I landed a junior developer role at a startup I'd been dreaming of working at. The projects were challenging but incredibly rewarding, and the instructor's feedback was always timely and detailed.</p>
+      <div class="card-footer-row">
+        <div class="helpful">
+          <button class="helpful-btn" onclick="toggleLike(this)">👍 Helpful <span>142</span></button>
+        </div>
+        <span class="course-chip">Web Development</span>
+      </div>
+    </div>
+
+    <!-- CARD 2 -->
+    <div class="review-card">
+      <div class="card-top">
+        <div class="reviewer">
+          <div class="avatar" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6)">MJ</div>
+          <div class="reviewer-info">
+            <div class="rname">Marcus Johnson</div>
+            <div class="rcourse">Python for Data Science</div>
+            <div class="rdate">Jan 28, 2026</div>
+          </div>
+        </div>
+        <div class="r-stars">★★★★★</div>
+      </div>
+      <span class="review-badge badge-top">🔥 Top Review</span>
+      <p class="review-text">Sarah Kim is hands-down the best online instructor I've ever encountered. She explains concepts with such clarity that even complex ML algorithms felt approachable. The real datasets used throughout the course made everything feel genuinely applicable to the real world.</p>
+      <div class="card-footer-row">
+        <div class="helpful">
+          <button class="helpful-btn" onclick="toggleLike(this)">👍 Helpful <span>287</span></button>
+        </div>
+        <span class="course-chip">Data Science</span>
+      </div>
+    </div>
+
+    <!-- CARD 3 -->
+    <div class="review-card">
+      <div class="card-top">
+        <div class="reviewer">
+          <div class="avatar" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">PL</div>
+          <div class="reviewer-info">
+            <div class="rname">Priya Lal</div>
+            <div class="rcourse">UI/UX Design with Figma</div>
+            <div class="rdate">Jan 20, 2026</div>
+          </div>
+        </div>
+        <div class="r-stars">★★★★★</div>
+      </div>
+      <span class="review-badge badge-verified">✓ Verified Purchase</span>
+      <p class="review-text">Absolutely phenomenal. I came in knowing nothing about design and left with a full portfolio of 8 projects. The mentor sessions were the highlight — getting real feedback on my work from a senior UX professional was worth the subscription price alone.</p>
+      <div class="card-footer-row">
+        <div class="helpful">
+          <button class="helpful-btn" onclick="toggleLike(this)">👍 Helpful <span>98</span></button>
+        </div>
+        <span class="course-chip">Design</span>
+      </div>
+    </div>
+
+    <!-- CARD 4 -->
+    <div class="review-card">
+      <div class="card-top">
+        <div class="reviewer">
+          <div class="avatar" style="background:linear-gradient(135deg,#22c55e,#3b82f6)">RC</div>
+          <div class="reviewer-info">
+            <div class="rname">Rafael Costa</div>
+            <div class="rcourse">Machine Learning A–Z</div>
+            <div class="rdate">Jan 15, 2026</div>
+          </div>
+        </div>
+        <div class="r-stars">★★★★★</div>
+      </div>
+      <span class="review-badge badge-new">🆕 New Review</span>
+      <p class="review-text">I tried three other platforms before LearnHub. The difference is the depth. This ML course doesn't just teach you syntax — it teaches you to think like a data scientist. The quizzes after each module keep you honest and the community forum is surprisingly active and helpful.</p>
+      <div class="card-footer-row">
+        <div class="helpful">
+          <button class="helpful-btn" onclick="toggleLike(this)">👍 Helpful <span>64</span></button>
+        </div>
+        <span class="course-chip">AI & ML</span>
+      </div>
+    </div>
+
+    <!-- CARD 5 -->
+    <div class="review-card">
+      <div class="card-top">
+        <div class="reviewer">
+          <div class="avatar" style="background:linear-gradient(135deg,#ec4899,#f59e0b)">SN</div>
+          <div class="reviewer-info">
+            <div class="rname">Sofia Nakamura</div>
+            <div class="rcourse">Digital Marketing</div>
+            <div class="rdate">Jan 10, 2026</div>
+          </div>
+        </div>
+        <div class="r-stars">★★★★☆</div>
+      </div>
+      <span class="review-badge badge-verified">✓ Verified Purchase</span>
+      <p class="review-text">Really solid course overall. The SEO and Google Ads modules were exceptional. I deducted one star because the social media section felt slightly outdated — TikTok strategy wasn't covered in depth. That said, I doubled my freelance income within 2 months of applying what I learned.</p>
+      <div class="card-footer-row">
+        <div class="helpful">
+          <button class="helpful-btn" onclick="toggleLike(this)">👍 Helpful <span>53</span></button>
+        </div>
+        <span class="course-chip">Marketing</span>
+      </div>
+    </div>
+
+    <!-- CARD 6 -->
+    <div class="review-card">
+      <div class="card-top">
+        <div class="reviewer">
+          <div class="avatar" style="background:linear-gradient(135deg,#6366f1,#22c55e)">DM</div>
+          <div class="reviewer-info">
+            <div class="rname">David Mensah</div>
+            <div class="rcourse">iOS Development</div>
+            <div class="rdate">Jan 5, 2026</div>
+          </div>
+        </div>
+        <div class="r-stars">★★★★★</div>
+      </div>
+      <span class="review-badge badge-top">🔥 Top Review</span>
+      <p class="review-text">Published my first app on the App Store two months after starting this course. The step-by-step approach removed all the overwhelm I'd felt with other resources. Robert is a fantastic teacher who explains the "why" behind every decision, not just the "how."</p>
+      <div class="card-footer-row">
+        <div class="helpful">
+          <button class="helpful-btn" onclick="toggleLike(this)">👍 Helpful <span>176</span></button>
+        </div>
+        <span class="course-chip">Mobile Dev</span>
+      </div>
+    </div>
+
+    <!-- CARD 7 -->
+    <div class="review-card">
+      <div class="card-top">
+        <div class="reviewer">
+          <div class="avatar" style="background:linear-gradient(135deg,#f59e0b,#2D5F5D)">LW</div>
+          <div class="reviewer-info">
+            <div class="rname">Li Wei</div>
+            <div class="rcourse">SQL & Business Intelligence</div>
+            <div class="rdate">Dec 28, 2025</div>
+          </div>
+        </div>
+        <div class="r-stars">★★★★★</div>
+      </div>
+      <span class="review-badge badge-verified">✓ Verified Purchase</span>
+      <p class="review-text">As a non-technical business analyst, SQL always seemed intimidating. This course made it feel natural. The business-focused examples made it easy to connect queries to real decisions. My team was genuinely impressed with the dashboards I built in the final project week.</p>
+      <div class="card-footer-row">
+        <div class="helpful">
+          <button class="helpful-btn" onclick="toggleLike(this)">👍 Helpful <span>89</span></button>
+        </div>
+        <span class="course-chip">Data Science</span>
+      </div>
+    </div>
+
+    <!-- CARD 8 -->
+    <div class="review-card">
+      <div class="card-top">
+        <div class="reviewer">
+          <div class="avatar" style="background:linear-gradient(135deg,#E07A5F,#6366f1)">EB</div>
+          <div class="reviewer-info">
+            <div class="rname">Elena Baranova</div>
+            <div class="rcourse">Advanced React & Next.js</div>
+            <div class="rdate">Dec 22, 2025</div>
+          </div>
+        </div>
+        <div class="r-stars">★★★★★</div>
+      </div>
+      <span class="review-badge badge-new">🆕 New Review</span>
+      <p class="review-text">Finally a React course that doesn't treat you like a beginner after the first lesson. Tom Chen goes deep into performance patterns, state management at scale, and server-side rendering. I came in as a mid-level dev and left feeling genuinely senior-level in my React knowledge.</p>
+      <div class="card-footer-row">
+        <div class="helpful">
+          <button class="helpful-btn" onclick="toggleLike(this)">👍 Helpful <span>211</span></button>
+        </div>
+        <span class="course-chip">Web Development</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="load-more-wrap">
+    <button class="load-btn">Load More Reviews</button>
+  </div>
+</section>
+
+<!-- ── VIDEO TESTIMONIALS ── -->
+<section class="video-section">
+  <div class="section-header">
+    <h2>Video Success Stories</h2>
+    <p>Hear directly from students who transformed their lives through learning</p>
+  </div>
+  <div class="video-grid">
+    <div class="video-card" onclick="openVid('dQw4w9WgXcQ')">
+      <div class="video-thumb">
+  <img src="https://img.youtube.com/vi/4sosXZsdy-s/maxresdefault.jpg" alt="student story" />
+  <div class="play-overlay"><div class="play-circle"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+</div>
+      <div class="video-info">
+        <div class="video-reviewer">
+          <div class="video-avatar">AK</div>
+          <div><div class="video-name"></div><div class="video-role">Junior Developer @ Stripe</div></div>
+        </div>
+        <p class="video-quote">"From zero coding knowledge to a tech job in under 6 months."</p>
+        <div class="video-stars">★★★★★</div>
+      </div>
+    </div>
+
+    <div class="video-card" onclick="openVid('rfscVS0vtbw')">
+      <div class="video-thumb">
+        <img src="https://img.youtube.com/vi/rfscVS0vtbw/maxresdefault.jpg" alt="student story" />
+        <div class="play-overlay"><div class="play-circle"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+      </div>
+      <div class="video-info">
+        <div class="video-reviewer">
+          <div class="video-avatar" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6)">MJ</div>
+          <div><div class="video-name">Marcus Johnson</div><div class="video-role">Data Scientist @ Spotify</div></div>
+        </div>
+        <p class="video-quote">"LearnHub's Python course was the catalyst for my career pivot into data."</p>
+        <div class="video-stars">★★★★★</div>
+      </div>
+    </div>
+
+    <div class="video-card" onclick="openVid('kUMe1FH4CHE')">
+      <div class="video-thumb">
+        <img src="https://img.youtube.com/vi/kUMe1FH4CHE/maxresdefault.jpg" alt="student story" />
+        <div class="play-overlay"><div class="play-circle"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+      </div>
+      <div class="video-info">
+        <div class="video-reviewer">
+          <div class="video-avatar" style="background:linear-gradient(135deg,#22c55e,#3b82f6)">PL</div>
+          <div><div class="video-name">Priya Lal</div><div class="video-role">Senior UX Designer</div></div>
+        </div>
+        <p class="video-quote">"The mentor feedback sessions were absolutely invaluable for my growth."</p>
+        <div class="video-stars">★★★★★</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SUBMIT FEEDBACK FORM ── -->
+<section class="form-section" id="submitFeedback">
+  <div class="section-header">
+    <h2>Share Your Experience</h2>
+    <p>Your honest feedback helps thousands of learners make better decisions</p>
+  </div>
+
+  <div class="form-wrap">
+
+    <!-- Step indicators -->
+    <div class="steps">
+      <div class="step active" id="step1ind">
+        <div class="step-num">1</div>
+        <div class="step-lbl">Your Info</div>
+      </div>
+      <div class="step-line" id="line1"></div>
+      <div class="step" id="step2ind">
+        <div class="step-num">2</div>
+        <div class="step-lbl">Rate Course</div>
+      </div>
+      <div class="step-line" id="line2"></div>
+      <div class="step" id="step3ind">
+        <div class="step-num">3</div>
+        <div class="step-lbl">Write Review</div>
+      </div>
+    </div>
+
+    <!-- Page 1: Personal Info -->
+    <div class="form-page active" id="page1">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full Name <span>*</span></label>
+          <input type="text" id="fname"  />
+        </div>
+        <div class="form-group">
+          <label>Email Address <span>*</span></label>
+          <input type="email" id="femail" placeholder="you@example.com" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Course Completed <span>*</span></label>
+          <select id="fcourse">
+            <option value="">— Select a course —</option>
+            <option>Complete Web Development Bootcamp 2026</option>
+            <option>Python for Data Science & Machine Learning</option>
+            <option>UI/UX Design Fundamentals with Figma</option>
+            <option>Advanced React & Next.js Development</option>
+            <option>Digital Marketing Masterclass 2026</option>
+            <option>iOS App Development with Swift & SwiftUI</option>
+            <option>JavaScript for Absolute Beginners</option>
+            <option>SQL for Data Analysis & Business Intelligence</option>
+            <option>Machine Learning A–Z with Python</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Your Role</label>
+          <select id="frole">
+            <option value="">— Select your role —</option>
+            <option>Student / Learner</option>
+            <option>Working Professional</option>
+            <option>Freelancer</option>
+            <option>Career Changer</option>
+            <option>Entrepreneur</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-nav">
+        <button class="btn-next" onclick="nextPage(1)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Page 2: Star Ratings -->
+    <div class="form-page" id="page2">
+      <div class="form-group">
+        <label>Overall Rating <span>*</span></label>
+        <div class="star-picker" id="overallStars">
+          <span class="sp-star" data-val="1">★</span>
+          <span class="sp-star" data-val="2">★</span>
+          <span class="sp-star" data-val="3">★</span>
+          <span class="sp-star" data-val="4">★</span>
+          <span class="sp-star" data-val="5">★</span>
+        </div>
+        <div class="star-label" id="starLabel">Click to rate</div>
+      </div>
+
+      <div class="form-group" style="margin-top:2rem;">
+        <label>Rate Specific Areas</label>
+        <div class="cat-ratings">
+          <div class="cat-row">
+            <span class="cat-name">Instructor Quality</span>
+            <div class="mini-stars" data-cat="instructor">
+              <span class="ms" data-v="1">★</span><span class="ms" data-v="2">★</span>
+              <span class="ms" data-v="3">★</span><span class="ms" data-v="4">★</span><span class="ms" data-v="5">★</span>
+            </div>
+          </div>
+          <div class="cat-row">
+            <span class="cat-name">Course Content</span>
+            <div class="mini-stars" data-cat="content">
+              <span class="ms" data-v="1">★</span><span class="ms" data-v="2">★</span>
+              <span class="ms" data-v="3">★</span><span class="ms" data-v="4">★</span><span class="ms" data-v="5">★</span>
+            </div>
+          </div>
+          <div class="cat-row">
+            <span class="cat-name">Value for Money</span>
+            <div class="mini-stars" data-cat="value">
+              <span class="ms" data-v="1">★</span><span class="ms" data-v="2">★</span>
+              <span class="ms" data-v="3">★</span><span class="ms" data-v="4">★</span><span class="ms" data-v="5">★</span>
+            </div>
+          </div>
+          <div class="cat-row">
+            <span class="cat-name">Platform Experience</span>
+            <div class="mini-stars" data-cat="platform">
+              <span class="ms" data-v="1">★</span><span class="ms" data-v="2">★</span>
+              <span class="ms" data-v="3">★</span><span class="ms" data-v="4">★</span><span class="ms" data-v="5">★</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-nav">
+        <button class="btn-back" onclick="prevPage(2)">← Back</button>
+        <button class="btn-next" onclick="nextPage(2)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Page 3: Write Review -->
+    <div class="form-page" id="page3">
+      <div class="form-group">
+        <label>Review Title <span>*</span></label>
+        <input type="text" id="freview_title" placeholder="Summarise your experience in one line…" />
+      </div>
+      <div class="form-group">
+        <label>Your Full Review <span>*</span></label>
+        <textarea id="freview_text" placeholder="Tell others what you loved, what could be improved, and how the course impacted you. Aim for at least 100 characters…"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Did you get a new job or promotion?</label>
+          <select id="fgot_job">
+            <option value="">— Select —</option>
+            <option>Yes, new job!</option>
+            <option>Yes, promotion!</option>
+            <option>Not yet, still learning</option>
+            <option>Not applicable</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Would you recommend LearnHub?</label>
+          <select id="frecommend">
+            <option>Definitely Yes</option>
+            <option>Probably Yes</option>
+            <option>Not Sure</option>
+            <option>Probably Not</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-nav">
+        <button class="btn-back" onclick="prevPage(3)">← Back</button>
+        <button class="btn-submit" onclick="submitForm()">Submit Review 🎉</button>
+      </div>
+    </div>
+
+    <!-- Success screen -->
+    <div class="success-screen" id="successScreen">
+      <span class="success-icon">🎊</span>
+      <h3>Thank You for Your Review!</h3>
+      <p>Your feedback has been submitted and is under review. Once approved it will appear on this page and help other learners make great decisions.</p>
+      <button class="btn-another" onclick="resetForm()">Write Another Review</button>
+    </div>
+
+  </div><!-- /form-wrap -->
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section">
+  <div class="cta-box">
+    <h2>Ready to Write Your Own Success Story?</h2>
+    <p>Join 50,000+ learners transforming their careers with LearnHub</p>
+    <div class="cta-btns">
+      <a href="#" class="btn-white">Start Learning Free</a>
+      <a href="#" class="btn-ghost">View All Courses</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── VIDEO MODAL ── -->
+<div class="modal-overlay" id="vidModal" onclick="handleOverlay(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeVid()">✕</button>
+    <div class="modal-video">
+      <iframe id="vidFrame" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <h3>LearnHub</h3>
+      <p>Empowering learners worldwide with quality education and practical skills. Your success is our mission.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Platform</h4>
+      <ul>
+        <li><a href="#">Browse Courses</a></li>
+        <li><a href="#">Become Instructor</a></li>
+        <li><a href="#">Success Stories</a></li>
+        <li><a href="#">Career Paths</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#">About Us</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Press Kit</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Resources</h4>
+      <ul>
+        <li><a href="#">Help Center</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">Community</a></li>
+        <li><a href="#">Terms & Privacy</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 LearnHub. All rights reserved.</div>
+</footer>
+
+<script>
+/* ── ANIMATE RATING BARS ON LOAD ── */
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.querySelectorAll('.bar-fill').forEach(bar => {
+      bar.style.width = bar.dataset.pct + '%';
+    });
+  }, 400);
+});
+
+/* ── FILTER PILLS ── */
+function setFilter(el) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ── HELPFUL BUTTON ── */
+function toggleLike(btn) {
+  const span = btn.querySelector('span');
+  const n = parseInt(span.textContent);
+  if (btn.classList.contains('liked')) {
+    btn.classList.remove('liked');
+    btn.innerHTML = `👍 Helpful <span>${n - 1}</span>`;
+  } else {
+    btn.classList.add('liked');
+    btn.innerHTML = `👍 Helpful <span>${n + 1}</span>`;
+  }
+}
+
+/* ── MAIN STAR PICKER ── */
+const starLabels = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent!'];
+let selectedRating = 0;
+
+document.querySelectorAll('#overallStars .sp-star').forEach(star => {
+  star.addEventListener('mouseenter', function () {
+    const v = +this.dataset.val;
+    document.querySelectorAll('#overallStars .sp-star').forEach(s => {
+      s.classList.toggle('hovered', +s.dataset.val <= v);
+    });
+    document.getElementById('starLabel').textContent = starLabels[v];
+  });
+  star.addEventListener('mouseleave', function () {
+    document.querySelectorAll('#overallStars .sp-star').forEach(s => {
+      s.classList.remove('hovered');
+      s.classList.toggle('selected', +s.dataset.val <= selectedRating);
+    });
+    document.getElementById('starLabel').textContent =
+      selectedRating ? starLabels[selectedRating] : 'Click to rate';
+  });
+  star.addEventListener('click', function () {
+    selectedRating = +this.dataset.val;
+    document.querySelectorAll('#overallStars .sp-star').forEach(s => {
+      s.classList.toggle('selected', +s.dataset.val <= selectedRating);
+    });
+    document.getElementById('starLabel').textContent = starLabels[selectedRating];
+  });
+});
+
+/* ── MINI CATEGORY STARS ── */
+document.querySelectorAll('.mini-stars').forEach(group => {
+  let sel = 0;
+  group.querySelectorAll('.ms').forEach(s => {
+    s.addEventListener('mouseenter', function () {
+      const v = +this.dataset.v;
+      group.querySelectorAll('.ms').forEach(x => x.classList.toggle('active', +x.dataset.v <= v));
+    });
+    s.addEventListener('mouseleave', function () {
+      group.querySelectorAll('.ms').forEach(x => x.classList.toggle('active', +x.dataset.v <= sel));
+    });
+    s.addEventListener('click', function () {
+      sel = +this.dataset.v;
+      group.querySelectorAll('.ms').forEach(x => x.classList.toggle('active', +x.dataset.v <= sel));
+    });
+  });
+});
+
+/* ── MULTI-STEP FORM ── */
+let currentPage = 1;
+
+function nextPage(from) {
+  // Basic validation for page 1
+  if (from === 1) {
+    const name   = document.getElementById('fname').value.trim();
+    const email  = document.getElementById('femail').value.trim();
+    const course = document.getElementById('fcourse').value;
+    if (!name || !email || !course) {
+      alert('Please fill in your name, email, and select a course.');
+      return;
+    }
+  }
+  if (from === 2 && selectedRating === 0) {
+    alert('Please select an overall star rating before continuing.');
+    return;
+  }
+  goToPage(from + 1);
+}
+
+function prevPage(from) { goToPage(from - 1); }
+
+function goToPage(n) {
+  document.getElementById(`page${currentPage}`).classList.remove('active');
+  currentPage = n;
+  document.getElementById(`page${currentPage}`).classList.add('active');
+  updateSteps();
+}
+
+function updateSteps() {
+  [1, 2, 3].forEach(i => {
+    const stepEl = document.getElementById(`step${i}ind`);
+    stepEl.classList.remove('active', 'done');
+    if (i < currentPage) stepEl.classList.add('done');
+    else if (i === currentPage) stepEl.classList.add('active');
+  });
+  [1, 2].forEach(i => {
+    const line = document.getElementById(`line${i}`);
+    line.classList.toggle('done', i < currentPage);
+  });
+}
+
+function submitForm() {
+  const name     = document.getElementById('fname').value.trim();
+  const email    = document.getElementById('femail').value.trim();
+  const course   = document.getElementById('fcourse').value;
+  const role     = document.getElementById('frole') ? document.getElementById('frole').value : '';
+  const title    = document.getElementById('freview_title') ? document.getElementById('freview_title').value.trim() : '';
+  const message  = document.getElementById('freview_text') ? document.getElementById('freview_text').value.trim() : '';
+  const got_job  = document.getElementById('fgot_job') ? document.getElementById('fgot_job').value : '';
+  const recommend= document.getElementById('frecommend') ? document.getElementById('frecommend').value : '';
+
+  if(!message){
+    alert('Please write your review before submitting.');
+    return;
+  }
+  if(selectedRating < 1){
+    alert('Please select a star rating.');
+    return;
+  }
+
+  const btn = document.querySelector('.btn-submit');
+  btn.textContent = 'Submitting...';
+  btn.disabled = true;
+
+  const formData = new FormData();
+  formData.append('name',         name);
+  formData.append('email',        email);
+  formData.append('course',       course);
+  formData.append('role',         role);
+  formData.append('rating',       selectedRating);
+  formData.append('review_title', title);
+  formData.append('review_text',  message);
+  formData.append('got_job',      got_job);
+  formData.append('recommend',    recommend);
+
+  fetch('submit_feedback.php', {
+    method: 'POST',
+    body: formData
+  })
+  .then(res => res.text())
+  .then(raw => {
+    try {
+      const data = JSON.parse(raw);
+      if(data.success){
+        document.querySelectorAll('.form-page').forEach(p => p.classList.remove('active'));
+        document.querySelector('.steps').style.display = 'none';
+        document.getElementById('successScreen').classList.add('show');
+      } else {
+        alert('Error: ' + (data.error || 'Something went wrong.'));
+        btn.textContent = 'Submit Review 🎉';
+        btn.disabled = false;
+      }
+    } catch(e) {
+      alert('Server response error. Check that submit_feedback.php is in your XAMPP folder.\n\nRaw response:\n' + raw.substring(0,200));
+      btn.textContent = 'Submit Review 🎉';
+      btn.disabled = false;
+    }
+  })
+  .catch(err => {
+    alert('Network error: ' + err.message + '\n\nMake sure submit_feedback.php is in the same folder.');
+    btn.textContent = 'Submit Review 🎉';
+    btn.disabled = false;
+  });
+}
+
+function resetForm() {
+  selectedRating = 0;
+  currentPage = 1;
+  document.getElementById('successScreen').classList.remove('show');
+  document.querySelector('.steps').style.display = 'flex';
+  document.querySelectorAll('.form-page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page1').classList.add('active');
+  updateSteps();
+  // Reset star pickers
+  document.querySelectorAll('#overallStars .sp-star').forEach(s => s.classList.remove('selected', 'hovered'));
+  document.getElementById('starLabel').textContent = 'Click to rate';
+  document.querySelectorAll('.ms').forEach(s => s.classList.remove('active'));
+}
+
+/* ── VIDEO MODAL ── */
+function openVid(id) {
+  document.getElementById('vidFrame').src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
+  document.getElementById('vidModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeVid() {
+  document.getElementById('vidModal').classList.remove('open');
+  document.getElementById('vidFrame').src = '';
+  document.body.style.overflow = '';
+}
+function handleOverlay(e) {
+  if (e.target === document.getElementById('vidModal')) closeVid();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeVid(); });
+</script>
+</body>
+</html>
